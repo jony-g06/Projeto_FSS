@@ -4,6 +4,21 @@ load referencia.coiso
 
 % Continuar
 
+%% Leitura de uma amostra vinda do microfone:
+% Esta função lê uma amostra de áudio, com 3 segundos, e armazena-a numa
+% variável
+%
+% Entradas:
+% N/A
+%
+% Saída:
+% amostra: Variável contentora do áudio gravado através do microfone 
+
+function amostra = receber()
+    amostra = audiorecorder;
+    recordblocking(amostra, 3);
+end
+
 %% Cálculo da diferença entre o sinal recebido e o esperado:
 % Esta função calcula a diferença relativa entre os valores das frequências
 % presentes no áudio recebido pelo microfone e as frequências presentes na
@@ -11,10 +26,10 @@ load referencia.coiso
 %
 % Entradas:
 % tent: Vetor das frequências presentes no aúdio recebido, obtido através
-% de uma transformada de Fourrier
+% de uma transformada de Fourrier (fft)
 %
 % base: Vetor das frequências presentes no aúdio de referência, obtido 
-% através de uma transformada de Fourrier
+% através de uma transformada de Fourrier (fft)
 %
 % Saída:
 % dif: Vetor que contêm os valores das diferenças relativas entre os
@@ -29,3 +44,4 @@ function dif = diferenca(tent, base)
         dif(k) = abs(tent(k) - base(k))/base(k);
     end
 end
+
