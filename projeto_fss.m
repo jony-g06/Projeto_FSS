@@ -1,6 +1,11 @@
 %% Projeto de FSS
 %%
-load referencia.coiso
+load PLACEHOLDER.coiso
+
+resposta = receber();
+freq_resp = fft(resposta)/length(resposta);
+
+erro = diferenca(freq_resp, PLACEHOLDER);
 
 % Continuar
 
