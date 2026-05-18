@@ -10,7 +10,7 @@
 % fs : Frequencia de amostragem do audio gravado
 %
 
-function [amostra, fs] = receber()
+function [amostra, fs] = recording()
     
     fig = uifigure('WindowKeyPressFcn',@(src,event)uiresume(src));
     uiwait(fig);
