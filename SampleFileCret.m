@@ -7,7 +7,7 @@
 % 
 
 function SampleFileCret( nameoffile)
-    [file, fa] = receber();
+    [file, fa] = recording();
     %[xq, fa]= audioread()
     xq = getaudiodata(file)
     writematrix(xq, nameoffile)
