@@ -1,13 +1,18 @@
-%% Projeto de FSS
-%%
 load PLACEHOLDER.coiso
 
 resposta = receber();
 freq_resp = fft(resposta)/length(resposta);
 
-erro = diferenca(freq_resp, PLACEHOLDER);
+erros = diferenca(freq_resp, PLACEHOLDER);
 
-% Continuar
+recon = identify(erros);
+
+if(recon)
+    disp('Bem vindo, mestre')
+else
+    disp('Utilizador não reconhecido')
+end
+
 
 %% Leitura de uma amostra vinda do microfone:
 % Esta função lê uma amostra de áudio, com 3 segundos, e armazena-a numa
@@ -46,7 +51,34 @@ end
 function dif = diferenca(tent, base)
     dif = zeros(0:length(base)/2);
     for k = 1:length(base)/2
-        dif(k) = abs(tent(k) - base(k))/base(k);
+        dif(k) = 100*abs(tent(k) - base(k))/base(k);
     end
 end
 
+%% Reconhecimento do falador
+% Esta função calcula, com base no vetor criado na função 'diferenca', o nº
+% de amostras que não se enquadra na tolerância imposta (10%) e, com base
+% na tolerância definida para esta amostra (10% do total de amostras)
+% confirma se o falador é o mesmo das amostras de referência.
+%
+% Entrada:
+% err: o vetor dos desvios gerado pela função 'diferenca' 
+%
+% Saída:
+% id: flag que indica se o falador foi reconhecido (1) ou não (0)
+
+function id = identify(err)
+    tol = 0;
+    for k = 1:length(err)
+        if(err(k) > 10)
+            tol = tol + 1;
+        end
+    end
+
+    if(tol <= 2400) % 2400 porque é 10% de 24000 amostras 
+                    % (fa = 8000, durante 3s => 8000 * 3 = 24000)
+        id = 1;
+    else
+        id = 0;
+    end
+end
