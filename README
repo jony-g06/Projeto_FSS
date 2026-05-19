@@ -8,4 +8,10 @@ Recording.m -> freq. amostragem: 8000
                nº amostras     : 24000
 (19/05/2026)
 
-SampleFileCret -> 
+SampleFileCret -> cria ficheiros com o 
+                  vetor do audio e a 
+                  frequência de amostragem
+                  associada ao audio, 
+                  respetivamente
+
+
