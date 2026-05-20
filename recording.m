@@ -15,7 +15,7 @@ function [amostra, fs] = recording()
     fig = uifigure('WindowKeyPressFcn',@(src,event)uiresume(src));
     uiwait(fig);
 
-    fs = 8000;
+    fs = 44100;
 
     amostra = audiorecorder(fs, 8, 1);
     fprintf('begin speaking: ')
