@@ -1,7 +1,13 @@
-load PLACEHOLDER.coiso
+%% Projeto de FSS
+%%
+%load PLACEHOLDER.coiso
+load pepsi_max.txt
 
-resposta = receber();
+resposta_audirec = recording();
+resposta = getaudiodata(resposta_audirec)
 freq_resp = fft(resposta)/length(resposta);
+
+PLACEHOLDER = fft(pepsi_max)/length(pepsi_max)
 
 erros = diferenca(freq_resp, PLACEHOLDER);
 
@@ -25,7 +31,7 @@ end
 % amostra: Variável contentora do áudio gravado através do microfone 
 
 function amostra = receber()
-    amostra = audiorecorder;
+    amostra = audiorecorder(44100, 8, 1);
     recordblocking(amostra, 3);
 end
 
