@@ -3,10 +3,10 @@ Projeto de FSS
 vamos metendo aqui aquilo que já se fez
 
 
-Recording.m -> freq. amostragem: 8000
+Recording.m -> freq. amostragem: 44100
                duração         : 3s
-               nº amostras     : 24000
-(19/05/2026)
+               nº amostras     : 132300
+(21/05/2026)
 
 SampleFileCret -> cria ficheiros com o 
                   vetor do audio e a 
