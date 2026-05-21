@@ -1,17 +1,22 @@
 %% Projeto de FSS
 %%
 %load PLACEHOLDER.coiso
-load pepsi_max.txt
+load basevoice.txt
 
 resposta_audirec = recording();
 resposta = getaudiodata(resposta_audirec)
-freq_resp = fft(resposta)/length(resposta);
+%freq_resp = fft(resposta)/length(resposta);
 
-PLACEHOLDER = fft(pepsi_max)/length(pepsi_max)
+%PLACEHOLDER = fft(basevoice)/length(basevoice)
 
-erros = diferenca(freq_resp, PLACEHOLDER);
+%erros = diferenca(freq_resp, PLACEHOLDER);
 
-recon = identify(erros);
+%recon = identify(erros);
+
+pbase = PropriedadesVoz(basevoice)
+ptent = PropriedadesVoz(resposta)
+
+recon = (ptent >= pbase - 10 & ptent <= pbase + 10);
 
 if(recon)
     disp('Bem vindo, mestre')
@@ -59,6 +64,23 @@ function dif = diferenca(tent, base)
     for k = 1:length(base)/2
         dif(k) = 100*abs(tent(k) - base(k))/base(k);
     end
+end
+
+%% Reconhecimento de afinação
+% Esta função retira a nota do audio a testar a partir da FFt do sinal.
+%
+% Entrada:
+% audio: o vetor dos valores do audio dado
+%
+% Saída:
+% a nota de afinação do dado audio
+% 
+
+function [Pitch] = PropriedadesVoz(audio)
+    transf = fft(audio(:,1));
+    plot(real(transf));
+    m = max(real(transf))
+    Pitch = find(real(transf) == m, 1)
 end
 
 %% Reconhecimento do falador
