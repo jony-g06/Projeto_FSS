@@ -83,6 +83,35 @@ function [Pitch] = PropriedadesVoz(audio)
     Pitch = find(real(transf) == m, 1)
 end
 
+%% Sampling de audio
+% 
+% criação de uma matriz de partes do sinal, cada parte demorando 10 ms,
+% para subsequente análise do sinal
+% 
+% Input:
+% a matriz linha do audio e a frequencia a que foi amostrado
+% 
+% Output:
+% matriz com vetores de 10 ms cada da amostra de audio
+
+function analysis = SpeechSampling(fala, fa)
+    % 
+    % 132300 = 3s, 10ms = x
+    % 132300*10*10^-3 
+    % 1323 / 3 = 441
+    %
+    tempo = length(fala)/fa;
+    sample_size = length(fala) * 10 * 10^-3 / tempo
+    %analysis = (0:length(fala)/sample_size -1),(0:sample_size -1)
+    analysis = createArray(sample_size, length(fala)/sample_size)
+    for k = 0:length(fala)/sample_size -1 
+        start = int32(k * sample_size) + 1
+        finish = int32((k + 1) * sample_size)
+        temp = fala(start : finish)
+        analysis(:,k+1) = temp;
+    end
+end
+
 %% Reconhecimento do falador
 % Esta função calcula, com base no vetor criado na função 'diferenca', o nº
 % de amostras que não se enquadra na tolerância imposta (10%) e, com base
@@ -103,8 +132,8 @@ function id = identify(err)
         end
     end
 
-    if(tol <= 2400) % 2400 porque é 10% de 24000 amostras 
-                    % (fa = 8000, durante 3s => 8000 * 3 = 24000)
+    if(tol <= 13230) % 13230 porque é 10% de 132300 amostras 
+                    % (fa = 44100, durante 3s => 44100 * 3 = 132300)
         id = 1;
     else
         id = 0;
