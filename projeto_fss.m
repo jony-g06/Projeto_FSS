@@ -57,30 +57,34 @@ end
 
 
 %% Sampling de audio
+% Esta função cria uma matriz de partes do sinal, cada uma demorando 10 ms,
+% para a subsequente análise dos seus fonemas
 % 
-% criação de uma matriz de partes do sinal, cada parte demorando 10 ms,
-% para subsequente análise do sinal
+% Entradas:
+% fala: Vetor contentor do áudio
+% fa: Frequência de amostragem do áudio (44100 Hz)
 % 
-% Input:
-% a matriz linha do audio e a frequencia a que foi amostrado
-% 
-% Output:
-% matriz com vetores de 10 ms cada da amostra de audio
+% Saída:
+% audio_seg: Matriz composta pelos vetores de segmentos de 10 ms da amostra
 
-function analysis = SpeechSampling(fala, fa)
-    % 
-    % 132300 = 3s, 10ms = x
-    % 132300*10*10^-3 
-    % 1323 / 3 = 441
-    %
-    tempo = length(fala)/fa;
-    sample_size = length(fala) * 10 * 10^-3 / tempo
+function audio_seg = SpeechSampling(fala, fa)
+    
+    % Cada segmento (de 10ms) contêm 441 amostras
+    sample_size = 441;
+
     %analysis = (0:length(fala)/sample_size -1),(0:sample_size -1)
-    analysis = createArray(sample_size, length(fala)/sample_size)
-    for k = 0:length(fala)/sample_size -1 
-        start = int32(k * sample_size) + 1
-        finish = int32((k + 1) * sample_size)
+
+    % Criar uma matriz de dimensões (Nº de amostras do segmento) x (Nº de
+    % segmentos)
+    audio_seg = createArray(sample_size, length(fala)/sample_size);
+
+    % Para cada segmento...
+    for k = 0:length(fala)/sample_size - 1 
+        % ... identifica-se os índices de início e de fim do mesmo...
+        start = k * sample_size + 1 
+        finish = (k + 1) * sample_size
+        % ... e, em cada coluna, escreve-se os dados de cada segmento
         temp = fala(start : finish)
-        analysis(:,k+1) = temp;
+        audio_seg(:,k+1) = temp;
     end
 end
