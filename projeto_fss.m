@@ -77,7 +77,7 @@ end
 % 
 
 function [Pitch] = PropriedadesVoz(audio)
-    transf = fft(audio(:,1));
+    transf = fft(audio(:,1))/length(audio);
     plot(real(transf));
     m = max(real(transf))
     Pitch = find(real(transf) == m, 1)
