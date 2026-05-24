@@ -1,87 +1,60 @@
 %% Projeto de FSS
-%%
-%load PLACEHOLDER.coiso
-load basevoice.txt
 
-resposta_audirec = recording();
-resposta = getaudiodata(resposta_audirec)
-%freq_resp = fft(resposta)/length(resposta);
+% Carregar os ficheiros de referência para a memória do programa
+load ref_sim.txt
+load ref_nao.txt
+% load ref_passe.txt
 
-%PLACEHOLDER = fft(basevoice)/length(basevoice)
+SIM = TimbreVoz(ref_sim);
+NAO = TimbreVoz(ref_nao);
+% PASSE = PropriedadesVoz(ref_passe);
 
-%erros = diferenca(freq_resp, PLACEHOLDER);
+while(true)
+    resposta_raw = recording();
+    resposta = getaudiodata(resposta_raw);
 
-%recon = identify(erros);
+    tent = TimbreVoz(resposta);
 
-pbase = PropriedadesVoz(basevoice)
-ptent = PropriedadesVoz(resposta)
+    identified_s = (abs(tent - SIM)/SIM * 100 <= 10);
+    identified_n = (abs(tent - NAO)/NAO * 100 <= 10);
 
-recon = (ptent >= pbase - 10 & ptent <= pbase + 10);
-
-if(recon)
-    disp('Bem vindo, mestre')
-else
-    disp('Utilizador não reconhecido')
-end
-
-
-%% Leitura de uma amostra vinda do microfone:
-% Esta função lê uma amostra de áudio, com 3 segundos, e armazena-a numa
-% variável
-%
-% Entradas:
-% N/A
-%
-% Saída:
-% amostra: Variável contentora do áudio gravado através do microfone 
-
-function amostra = receber()
-    amostra = audiorecorder(44100, 8, 1);
-    recordblocking(amostra, 3);
-end
-
-%% Cálculo da diferença entre o sinal recebido e o esperado:
-% Esta função calcula a diferença relativa entre os valores das frequências
-% presentes no áudio recebido pelo microfone e as frequências presentes na
-% amostra de áudio usada como referência.
-%
-% Entradas:
-% tent: Vetor das frequências presentes no aúdio recebido, obtido através
-% de uma transformada de Fourrier (fft)
-%
-% base: Vetor das frequências presentes no aúdio de referência, obtido 
-% através de uma transformada de Fourrier (fft)
-%
-% Saída:
-% dif: Vetor que contêm os valores das diferenças relativas entre os
-% valores recebidos pelo microfone e os da amostra-base, em %
-%
-% Nota: Nesta função, considera-se apenas metade do comprimento dos vetores
-% de entrada, dada a simetria que existe a partir do ponto médio deste
-
-function dif = diferenca(tent, base)
-    dif = zeros(0:length(base)/2);
-    for k = 1:length(base)/2
-        dif(k) = 100*abs(tent(k) - base(k))/base(k);
+    if(identified_s)
+        disp('Sim')
+    elseif (identified_n)
+        disp('Não')
+    else
+        disp('Utilizador não reconhecido')
     end
 end
 
-%% Reconhecimento de afinação
-% Esta função retira a nota do audio a testar a partir da FFt do sinal.
+%% Reconhecimento da afinação do som
+% Esta função retira a nota de afinação/frequência fundamental do audio a 
+% testar a partir da transformada de Fourrier (FFT) do sinal.
 %
 % Entrada:
 % audio: o vetor dos valores do audio dado
 %
 % Saída:
-% a nota de afinação do dado audio
-% 
+% Pitch: a nota de afinação do áudio analisado
 
-function [Pitch] = PropriedadesVoz(audio)
-    transf = fft(audio(:,1))/length(audio);
-    plot(real(transf));
-    m = max(real(transf))
-    Pitch = find(real(transf) == m, 1)
+function [Timbre] = TimbreVoz(audio)
+    % A variável 'transform' armazena o vetor dos valores da transformada
+    % de Fourrier do áudio
+    transform = fft(audio(:,1))/length(audio);
+
+    % A variável 'm' irá armazenar o valor mais elevado da transformada.
+    % NOTA: Aqui utiliza-se a função 'real(z)', uma vez que a função
+    % 'fft(X)' retorna valores complexos e apenas nos interessa a magnitude
+    % real desses valores.
+    m = max(real(transform))
+
+    % A variável 'Pitch' vai armazenar a frequência associada a 'm' (neste 
+    % caso, corresponde ao índice de 'm').
+    % NOTA: O segundo argumento da função 'find', serve apenas para
+    % garantir que apenas 1 valor é extraído
+    Timbre = find(real(transform) == m, 1)
 end
+
 
 %% Sampling de audio
 % 
@@ -109,33 +82,5 @@ function analysis = SpeechSampling(fala, fa)
         finish = int32((k + 1) * sample_size)
         temp = fala(start : finish)
         analysis(:,k+1) = temp;
-    end
-end
-
-%% Reconhecimento do falador
-% Esta função calcula, com base no vetor criado na função 'diferenca', o nº
-% de amostras que não se enquadra na tolerância imposta (10%) e, com base
-% na tolerância definida para esta amostra (10% do total de amostras)
-% confirma se o falador é o mesmo das amostras de referência.
-%
-% Entrada:
-% err: o vetor dos desvios gerado pela função 'diferenca' 
-%
-% Saída:
-% id: flag que indica se o falador foi reconhecido (1) ou não (0)
-
-function id = identify(err)
-    tol = 0;
-    for k = 1:length(err)
-        if(err(k) > 10)
-            tol = tol + 1;
-        end
-    end
-
-    if(tol <= 13230) % 13230 porque é 10% de 132300 amostras 
-                    % (fa = 44100, durante 3s => 44100 * 3 = 132300)
-        id = 1;
-    else
-        id = 0;
     end
 end
