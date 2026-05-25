@@ -148,14 +148,14 @@ function coeficients = AudioProcessing(samp_audio)
     % banco de filtros de Mel usa a magnitude ao quadrado para o calculo
     % dos filtros
     close(figure)
-
-    mag_sig = abs(temp2).^2;
+    sip = floor(length(temp2(:,1))/2);
+    mag_sig = abs(temp2((1:sip), :)).^2;
 
     figure 
     hold on
 
     for k = 1:length(mag_sig(1, :))
-        n = (k - 1) * 1323: ((k-1) * 1323) + 1322;
+        n = (k - 1) * sip: ((k-1) * sip) + sip -1;
         plot(n, mag_sig(:, k))
     end
 
