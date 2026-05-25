@@ -166,3 +166,31 @@ function coeficients = AudioProcessing(samp_audio)
     
 
 end
+
+%% Reconhecimento do falador
+% Esta função calcula, com base no vetor criado na função 'diferenca', o nº
+% de amostras que não se enquadra na tolerância imposta (10%) e, com base
+% na tolerância definida para esta amostra (10% do total de amostras)
+% confirma se o falador é o mesmo das amostras de referência.
+%
+% Entrada:
+% err: o vetor dos desvios gerado pela função 'diferenca' 
+%
+% Saída:
+% id: flag que indica se o falador foi reconhecido (1) ou não (0)
+
+function id = identify(err)
+    tol = 0;
+    for k = 1:length(err)
+        if(err(k) > 10)
+            tol = tol + 1;
+        end
+    end
+
+    if(tol <= 2400) % 2400 porque é 10% de 24000 amostras 
+                    % (fa = 8000, durante 3s => 8000 * 3 = 24000)
+        id = 1;
+    else
+        id = 0;
+    end
+end
