@@ -1,29 +1,49 @@
 %% Projeto de FSS
 
-% Carregar os ficheiros de referência para a memória do programa
+% Carregar os ficheiros de referência para a memória do programa. Esta será
+% a nossa base de dados
 load ref_sim.txt
 load ref_nao.txt
-% load ref_passe.txt
+load ref_talvez.txt
+load ref_ornintorrinco.txt
 
-SIM = TimbreVoz(ref_sim);
-NAO = TimbreVoz(ref_nao);
-% PASSE = PropriedadesVoz(ref_passe);
-
+% Correr o programa em loop infinito
 while(true)
+
+    % Recolher uma amostra de áudio a analisar
     resposta_raw = recording();
     resposta = getaudiodata(resposta_raw);
 
-    tent = TimbreVoz(resposta);
-
-    identified_s = (abs(tent - SIM)/SIM * 100 <= 10);
-    identified_n = (abs(tent - NAO)/NAO * 100 <= 10);
-
-    if(identified_s)
+    % Executar uma correlação cruzada entre a resposta recolhida e as
+    % diferentes possibilidades da base de dados
+    sim = xcorr(resposta, ref_sim);
+    nao = xcorr(resposta, ref_nao);
+    talvez = xcorr(resposta, ref_talvez);
+    ornintorrinco = xcorr(resposta, ref_ornintorrinco);
+    
+    % Para cada palavra da base de dados, verificar se ela foi identificada
+    % e imprimi-la no terminal
+    if(identify(sim))
         disp('Sim')
-    elseif (identified_n)
+    elseif(identify(nao))
         disp('Não')
+    elseif(identify(talvez))
+        disp('Talvez')
+    elseif(identify(ornintorrinco))
+        disp('Ornintorrinco')
+
+    % Caso nenhuma palavra tenha sido reconhecida, ...
     else
-        disp('Utilizador não reconhecido')
+        % ... verificamos se foi por causa do timbre da pessoa ...
+        if(TimbreVoz(resposta) < 0.9*TimbreVoz(ref_sim) & ...
+           TimbreVoz(resposta) < 0.9*TimbreVoz(ref_nao) & ...
+           TimbreVoz(resposta) < 0.9*TimbreVoz(ref_talvez) & ...
+           TimbreVoz(resposta) < 0.9*TimbreVoz(ref_ornintorrinco))
+            disp('Utilizador não reconhecido')
+        else
+        % ... ou se a instrução simplesmente não foi reconhecida.
+            disp('Comando não reconhecido')
+        end
     end
 end
 
@@ -55,140 +75,25 @@ function [Timbre] = TimbreVoz(audio)
     Timbre = find(real(transform) == m, 1)
 end
 
-%% Sampling de audio
-% Esta função cria uma matriz de partes do sinal, cada uma demorando 10 ms,
-% para a subsequente análise dos seus fonemas
-% 
-% Entradas:
-% fala: Vetor contentor do áudio
-% fa: Frequência de amostragem do áudio (44100 Hz)
-% 
-% Saída:
-% audio_seg: Matriz composta pelos vetores de segmentos de 10 ms da amostra
-
-function analysis = SpeechSampling(fala, fa)
-    % 
-    % 132300 = 3s, 10ms = x
-    % 132300*10*10^-3 
-    % 1323 / 3 = 441
-    % 1323 será o tamanho, para
-    % comportar o overlaping de sianl, não se eprdendo informação pelo meio
-
-    % Cada segmento (de 10ms) contêm 441 amostras. como queremos overlapping
-    % (para consistência do sinal transformado), teremos overlapping de 
-    % 441 amostras para cada lado. As matirzes finais e iniciais terâo 
-    % 0's a preencher o resto do vetor
-    
-    tempo = length(fala)/fa;
-    sample_size = length(fala) * 10 * 10^-3 / tempo;
-    
-    % Criar uma matriz de dimensões (3 x Nº de amostras do segmento) x (Nº de
-    % segmentos)
-    analysis = zeros(3.*sample_size, length(fala)/sample_size);
-
-    % instauro a variável sizing para o matlab não a calcular constantemente
-    sizing = length(fala)/sample_size -1 ;
-    
-    for k = 0:sizing
-        % no caso de ser a primeira amostra
-        if k == 0
-             % ... identifica-se os índices de início e de fim do mesmo...
-            start = 1;
-            finish = 882;
-            temp = fala(start : finish);
-            % ... e, em cada coluna, escreve-se os dados de cada segmento
-            analysis((442:1323), k+1) = temp;
-        end
-        % no caso de não ser nem a primeira nem a última
-        if k > 0 & k < sizing
-             % ... identifica-se os índices de início e de fim do mesmo...
-            start = (k-1) * sample_size + 1;
-            finish = (k + 2) * sample_size;
-            temp = fala(start : finish);
-            % ... e, em cada coluna, escreve-se os dados de cada segmento
-            analysis(:,k+1) = temp;
-        end
-        % no caso de ser a última
-        if k == sizing 
-             % ... identifica-se os índices de início e de fim do mesmo...
-            start = (k - 1) * sample_size + 1;
-            finish = (k + 1) * sample_size;
-            temp = fala(start : finish);
-            % ... e, em cada coluna, escreve-se os dados de cada segmento
-            analysis((1:882), k+1) = temp;
-        end
-    end
-end
-
-%% Tratamento de audio
-%
-%
-%
-
-function coeficients = AudioProcessing(samp_audio)
-    % definição de parametros para a função de hanning e implementação da
-    % funcão no sinal em intervalos
-    M = length(samp_audio(:,1));
-    hann_func =.5*(1 - cos(2*pi*(0:M-1)'/(M-1)));
-    temp = zeros(length(samp_audio(:,1)), length(samp_audio(1,:)));
-    for k = 1:length(samp_audio(1,:))
-        temp(:,k) = hann_func.* samp_audio(:,k);
-    end
-    
-    % transformadas de fourier aplicadas a cada frame de 10ms
-    %temp2 = zeros(length(samp_audio(:,1)), length(samp_audio(1,:)));
-    %for k = 1:length(samp_audio(1,:))
-    %    temp2(:,k) = fft(temp(:,k))/length(temp(:,k))
-    %end
-    temp2 = fft(temp);
-
-
-    % aplicação do banco de filtros de mel
-
-    % banco de filtros de Mel usa a magnitude ao quadrado para o calculo
-    % dos filtros
-    close(figure)
-    sip = floor(length(temp2(:,1))/2);
-    mag_sig = abs(temp2((1:sip), :)).^2;
-
-    figure 
-    hold on
-
-    for k = 1:length(mag_sig(1, :))
-        n = (k - 1) * sip: ((k-1) * sip) + sip -1;
-        plot(n, mag_sig(:, k))
-    end
-
-    hold off
-    
-    
-
-    
-
-end
-
 %% Reconhecimento do falador
-% Esta função calcula, com base no vetor criado na função 'diferenca', o nº
-% de amostras que não se enquadra na tolerância imposta (10%) e, com base
-% na tolerância definida para esta amostra (10% do total de amostras)
-% confirma se o falador é o mesmo das amostras de referência.
+% Esta função idica, com base no vetor da correlação cruzada entre a
+% amostra de referência e a amostra desconhecida se o falador e a palavra
+% são os mesmos.
 %
 % Entrada:
-% err: o vetor dos desvios gerado pela função 'diferenca' 
+% correl: o vetor da correlação cruzada entre a amostra de referência e a
+% amostra desconhecida
 %
 % Saída:
-% id: flag que indica se o falador foi reconhecido (1) ou não (0)
+% id: flag que indica se o falador e a instrução foram reconhecidos (1) ou 
+% não (0)
+%
+% NOTA: Após alguns testes, verificámos que o valor mínimo dos máximos de
+% correlação própria da nossa base de dados era cerca de 90, logo, este
+% valor serve como referência para a identificação
 
-function id = identify(err)
-    tol = 0;
-    for k = 1:length(err)
-        if(err(k) > 10)
-            tol = tol + 1;
-        end
-    end
-
-    if(tol <= 2400) % 2400 porque é 10% de 24000 amostras 
-                    % (fa = 8000, durante 3s => 8000 * 3 = 24000)
+function id = identify(correl)
+    if(max(correl) >= 90)
         id = 1;
     else
         id = 0;
