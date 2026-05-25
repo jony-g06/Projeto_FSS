@@ -55,7 +55,6 @@ function [Timbre] = TimbreVoz(audio)
     Timbre = find(real(transform) == m, 1)
 end
 
-
 %% Sampling de audio
 % Esta função cria uma matriz de partes do sinal, cada uma demorando 10 ms,
 % para a subsequente análise dos seus fonemas
@@ -67,24 +66,56 @@ end
 % Saída:
 % audio_seg: Matriz composta pelos vetores de segmentos de 10 ms da amostra
 
-function audio_seg = SpeechSampling(fala, fa)
+function analysis = SpeechSampling(fala, fa)
+    % 
+    % 132300 = 3s, 10ms = x
+    % 132300*10*10^-3 
+    % 1323 / 3 = 441
+    % 1323 será o tamanho, para
+    % comportar o overlaping de sianl, não se eprdendo informação pelo meio
+
+    % Cada segmento (de 10ms) contêm 441 amostras. como queremos overlapping
+    % (para consistência do sinal transformado), teremos overlapping de 
+    % 441 amostras para cada lado. As matirzes finais e iniciais terâo 
+    % 0's a preencher o resto do vetor
     
-    % Cada segmento (de 10ms) contêm 441 amostras
-    sample_size = 441;
-
-    %analysis = (0:length(fala)/sample_size -1),(0:sample_size -1)
-
-    % Criar uma matriz de dimensões (Nº de amostras do segmento) x (Nº de
+    tempo = length(fala)/fa;
+    sample_size = length(fala) * 10 * 10^-3 / tempo;
+    
+    % Criar uma matriz de dimensões (3 x Nº de amostras do segmento) x (Nº de
     % segmentos)
-    audio_seg = createArray(sample_size, length(fala)/sample_size);
+    analysis = zeros(3.*sample_size, length(fala)/sample_size);
 
-    % Para cada segmento...
-    for k = 0:length(fala)/sample_size - 1 
-        % ... identifica-se os índices de início e de fim do mesmo...
-        start = k * sample_size + 1 
-        finish = (k + 1) * sample_size
-        % ... e, em cada coluna, escreve-se os dados de cada segmento
-        temp = fala(start : finish)
-        audio_seg(:,k+1) = temp;
+    % instauro a variável sizing para o matlab não a calcular constantemente
+    sizing = length(fala)/sample_size -1 ;
+    
+    for k = 0:sizing
+        % no caso de ser a primeira amostra
+        if k == 0
+             % ... identifica-se os índices de início e de fim do mesmo...
+            start = 1;
+            finish = 882;
+            temp = fala(start : finish);
+            % ... e, em cada coluna, escreve-se os dados de cada segmento
+            analysis((442:1323), k+1) = temp;
+        end
+        % no caso de não ser nem a primeira nem a última
+        if k > 0 & k < sizing
+             % ... identifica-se os índices de início e de fim do mesmo...
+            start = (k-1) * sample_size + 1;
+            finish = (k + 2) * sample_size;
+            temp = fala(start : finish);
+            % ... e, em cada coluna, escreve-se os dados de cada segmento
+            analysis(:,k+1) = temp;
+        end
+        % no caso de ser a última
+        if k == sizing 
+             % ... identifica-se os índices de início e de fim do mesmo...
+            start = (k - 1) * sample_size + 1;
+            finish = (k + 1) * sample_size;
+            temp = fala(start : finish);
+            % ... e, em cada coluna, escreve-se os dados de cada segmento
+            analysis((1:882), k+1) = temp;
+        end
     end
 end
