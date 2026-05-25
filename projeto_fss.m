@@ -119,3 +119,35 @@ function analysis = SpeechSampling(fala, fa)
         end
     end
 end
+
+%% Tratamento de audio
+%
+%
+%
+
+function coeficients = AudioProcessing(samp_audio)
+    % definição de parametros para a função de hanning e implementação da
+    % funcão no sinal em intervalos
+    M = length(samp_audio(:,1));
+    hann_func =.5*(1 - cos(2*pi*(0:M-1)'/(M-1)));
+    temp = zeros(length(samp_audio(:,1)), length(samp_audio(1,:)));
+    for k = 1:length(samp_audio(1,:))
+        temp(:,k) = hann_func.* samp_audio(:,k)
+    end
+    
+    % transformadas de fourier aplicadas a cada frame de 10ms
+    temp2 = zeros(length(samp_audio(:,1)), length(samp_audio(1,:)));
+    for k = 1:length(samp_audio(1,:))
+        temp2(:,k) = fft(temp(:,k))/length(temp(:,k))
+    end
+
+    % aplicação do banco de filtros de mel
+
+    % banco de filtros de Mel usa a magnitude ao quadrado para o calculo
+    % dos filtros
+
+    mag_sig = abs(temp2).^2;
+    
+    
+
+end
