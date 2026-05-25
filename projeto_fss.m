@@ -132,22 +132,37 @@ function coeficients = AudioProcessing(samp_audio)
     hann_func =.5*(1 - cos(2*pi*(0:M-1)'/(M-1)));
     temp = zeros(length(samp_audio(:,1)), length(samp_audio(1,:)));
     for k = 1:length(samp_audio(1,:))
-        temp(:,k) = hann_func.* samp_audio(:,k)
+        temp(:,k) = hann_func.* samp_audio(:,k);
     end
     
     % transformadas de fourier aplicadas a cada frame de 10ms
-    temp2 = zeros(length(samp_audio(:,1)), length(samp_audio(1,:)));
-    for k = 1:length(samp_audio(1,:))
-        temp2(:,k) = fft(temp(:,k))/length(temp(:,k))
-    end
+    %temp2 = zeros(length(samp_audio(:,1)), length(samp_audio(1,:)));
+    %for k = 1:length(samp_audio(1,:))
+    %    temp2(:,k) = fft(temp(:,k))/length(temp(:,k))
+    %end
+    temp2 = fft(temp);
+
 
     % aplicação do banco de filtros de mel
 
     % banco de filtros de Mel usa a magnitude ao quadrado para o calculo
     % dos filtros
+    close(figure)
 
     mag_sig = abs(temp2).^2;
+
+    figure 
+    hold on
+
+    for k = 1:length(mag_sig(1, :))
+        n = (k - 1) * 1323: ((k-1) * 1323) + 1322;
+        plot(n, mag_sig(:, k))
+    end
+
+    hold off
     
+    
+
     
 
 end
