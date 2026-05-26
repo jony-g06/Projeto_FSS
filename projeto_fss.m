@@ -1,5 +1,4 @@
-%% Projeto de FSS
-
+%% Projeto de FSS: Reconhecimento de instruções faladas
 % Carregar os ficheiros de referência para a memória do programa. Esta será
 % a nossa base de dados
 load ref_sim.txt
@@ -21,24 +20,32 @@ while(true)
     talvez = xcorr(resposta, ref_talvez);
     ornintorrinco = xcorr(resposta, ref_ornintorrinco);
     
+    plot(resposta, 'r')
+    hold on
+    plot(ref_sim, 'b')
+
     % Para cada palavra da base de dados, verificar se ela foi identificada
     % e imprimi-la no terminal
-    if(identify(sim))
+    if(identify(sim, ref_sim))
         disp('Sim')
-    elseif(identify(nao))
+        plot(ref_sim)
+    elseif(identify(nao, ref_nao))
         disp('Não')
-    elseif(identify(talvez))
+        plot(ref_nao)
+    elseif(identify(talvez, ref_talvez))
         disp('Talvez')
-    elseif(identify(ornintorrinco))
+        plot(ref_talvez)
+    elseif(identify(ornintorrinco, ref_ornintorrinco))
         disp('Ornintorrinco')
+        plot(ref_ornintorrinco)
 
     % Caso nenhuma palavra tenha sido reconhecida, ...
     else
         % ... verificamos se foi por causa do timbre da pessoa ...
-        if(TimbreVoz(resposta) < 0.9*TimbreVoz(ref_sim) & ...
-           TimbreVoz(resposta) < 0.9*TimbreVoz(ref_nao) & ...
-           TimbreVoz(resposta) < 0.9*TimbreVoz(ref_talvez) & ...
-           TimbreVoz(resposta) < 0.9*TimbreVoz(ref_ornintorrinco))
+        if(TimbreVoz(resposta) < 0.8*TimbreVoz(ref_sim) & ...
+           TimbreVoz(resposta) < 0.8*TimbreVoz(ref_nao) & ...
+           TimbreVoz(resposta) < 0.8*TimbreVoz(ref_talvez) & ...
+           TimbreVoz(resposta) < 0.8*TimbreVoz(ref_ornintorrinco))
             disp('Utilizador não reconhecido')
         else
         % ... ou se a instrução simplesmente não foi reconhecida.
@@ -66,7 +73,7 @@ function [Timbre] = TimbreVoz(audio)
     % NOTA: Aqui utiliza-se a função 'real(z)', uma vez que a função
     % 'fft(X)' retorna valores complexos e apenas nos interessa a magnitude
     % real desses valores.
-    m = max(real(transform))
+    m = max(real(transform));
 
     % A variável 'Pitch' vai armazenar a frequência associada a 'm' (neste 
     % caso, corresponde ao índice de 'm').
@@ -87,15 +94,15 @@ end
 % Saída:
 % id: flag que indica se o falador e a instrução foram reconhecidos (1) ou 
 % não (0)
-%
-% NOTA: Após alguns testes, verificámos que o valor mínimo dos máximos de
-% correlação própria da nossa base de dados era cerca de 90, logo, este
-% valor serve como referência para a identificação
 
-function id = identify(correl)
-    if(max(correl) >= 90)
+function id = identify(correl, ref)
+    % Caso o valor máximo da correlação entre o áudio recebido e uma 
+    % referência for superior a 75% da autocorrelação da referência ...
+    if(max(correl) >= 0.75*max(xcorr(ref, ref)))
+        % ... a instruçao é identificada
         id = 1;
     else
+        % Caso contrário, não o é
         id = 0;
     end
 end
