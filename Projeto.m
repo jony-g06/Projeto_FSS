@@ -26,18 +26,18 @@ while(true)
 
     % Para cada palavra da base de dados, verificar se ela foi identificada
     % e imprimi-la no terminal
-    if(identify(sim, ref_sim))
-        disp('Sim')
-        plot(ref_sim)
-    elseif(identify(nao, ref_nao))
-        disp('Não')
-        plot(ref_nao)
+    if(identify(ornintorrinco, ref_ornintorrinco))
+        disp('Ornintorrinco')
+        plot(ref_ornintorrinco)
     elseif(identify(talvez, ref_talvez))
         disp('Talvez')
         plot(ref_talvez)
-    elseif(identify(ornintorrinco, ref_ornintorrinco))
-        disp('Ornintorrinco')
-        plot(ref_ornintorrinco)
+    elseif(identify(nao, ref_nao))
+        disp('Não')
+        plot(ref_nao)
+    elseif(identify(sim, ref_sim))
+        disp('Sim')
+        plot(ref_sim)
 
     % Caso nenhuma palavra tenha sido reconhecida, ...
     else
