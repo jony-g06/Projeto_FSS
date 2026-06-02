@@ -20,6 +20,9 @@ while(true)
     talvez = xcorr(resposta, ref_talvez);
     ornintorrinco = xcorr(resposta, ref_ornintorrinco);
 
+    plot(resposta, 'r')
+    hold on
+    
     % Para cada palavra da base de dados, verificar se ela foi identificada
     % e imprimi-la no terminal
     if(identify(ornintorrinco, ref_ornintorrinco))
